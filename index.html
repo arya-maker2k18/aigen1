@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ARXXZZ AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --blue:   #00d4ff;
+      --purple: #a855f7;
+      --violet: #7c3aed;
+      --bg:     #03030a;
+      --panel:  rgba(8,6,20,0.97);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      font-family: 'Rajdhani', sans-serif;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════
+       SPLASH SCREEN
+    ═══════════════════════════════════ */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      transition: opacity 1.2s ease, visibility 1.2s ease;
+    }
+    #splash.done { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    #s-scan {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, transparent 0, transparent 3px,
+        rgba(0,212,255,0.018) 3px, rgba(0,212,255,0.018) 4px
+      );
+    }
+    #s-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    #s-orb {
+      position: absolute;
+      width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.28) 0%, rgba(0,212,255,0.1) 40%, transparent 70%);
+      filter: blur(55px);
+      animation: orbPulse 3s ease-in-out infinite alternate;
+    }
+    @keyframes orbPulse { from{transform:scale(0.88);opacity:.7} to{transform:scale(1.12);opacity:1} }
+
+    #s-ring {
+      position: absolute; width: 360px; height: 360px; border-radius: 50%;
+      border: 1.5px solid transparent;
+      border-top-color: rgba(168,85,247,.75);
+      border-right-color: rgba(0,212,255,.35);
+      animation: spin 4s linear infinite;
+      opacity: 0; transition: opacity .7s;
+    }
+    #s-ring.on { opacity: 1; }
+    #s-ring2 {
+      position: absolute; width: 280px; height: 280px; border-radius: 50%;
+      border: 1px solid transparent;
+      border-bottom-color: rgba(0,212,255,.65);
+      border-left-color: rgba(168,85,247,.25);
+      animation: spin 3s linear infinite reverse;
+      opacity: 0; transition: opacity .7s .2s;
+    }
+    #s-ring2.on { opacity: 1; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #s-box {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+
+    #s-welcome {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(.75rem, 1.8vw, .95rem);
+      letter-spacing: .55em; text-transform: uppercase;
+      color: rgba(0,212,255,.75);
+      margin-bottom: 1.6rem;
+      opacity: 0; transform: translateY(-28px);
+      transition: opacity .9s ease, transform .9s ease;
+    }
+    #s-welcome.on { opacity: 1; transform: translateY(0); }
+
+    #s-brand-row {
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.6rem;
+      min-height: clamp(4rem, 12vw, 9rem);
+    }
+    .sl {
+      font-family: 'Orbitron', monospace; font-weight: 900;
+      font-size: clamp(3.4rem, 10vw, 8rem);
+      line-height: 1; display: inline-block;
+      opacity: 0; transform: translateY(90px) scale(.35) rotateX(45deg);
+      transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1);
+      background: linear-gradient(155deg, #fff 0%, var(--blue) 40%, var(--purple) 90%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 22px rgba(168,85,247,.75));
+    }
+    .sl.on { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
+    .sl-sp { display: inline-block; width: .38em; }
+    @keyframes lglow {
+      0%,100% { filter: drop-shadow(0 0 10px rgba(168,85,247,.5)); }
+      50%      { filter: drop-shadow(0 0 45px rgba(0,212,255,1)) drop-shadow(0 0 90px rgba(168,85,247,.9)); }
+    }
+    .sl.glow { animation: lglow 1.8s ease-in-out infinite alternate; }
+
+    #s-tagline {
+      font-family: 'Rajdhani', sans-serif; font-size: clamp(.88rem, 2.2vw, 1.18rem);
+      font-weight: 500; letter-spacing: .28em; text-transform: uppercase; color: #475569;
+      margin-bottom: 2.6rem;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    #s-tagline span { color: rgba(168,85,247,.9); }
+    #s-tagline.on { opacity: 1; transform: translateY(0); }
+
+    #s-loader { width: clamp(220px,38vw,360px); opacity: 0; transition: opacity .6s; }
+    #s-loader.on { opacity: 1; }
+    #s-track {
+      height: 3px; background: rgba(255,255,255,.06);
+      border-radius: 10px; overflow: hidden; margin-bottom: .85rem; position: relative;
+    }
+    #s-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      box-shadow: 0 0 16px rgba(168,85,247,.9), 0 0 32px rgba(0,212,255,.5);
+      border-radius: 10px; transition: width .05s linear; position: relative;
+    }
+    #s-fill::after {
+      content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%;
+      background: white; box-shadow: 0 0 14px white, 0 0 28px var(--blue);
+    }
+    #s-meta {
+      display: flex; justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace; font-size: .64rem; color: #334155; letter-spacing: .08em;
+    }
+    #s-pct { color: rgba(0,212,255,.65); }
+
+    /* ═══════════════════════════════════
+       FULLSCREEN CHAT LAYOUT
+    ═══════════════════════════════════ */
+    #app {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      background: var(--bg);
+    }
+
+    /* Grid bg */
+    #app::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.035) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    /* Aurora blobs */
+    #app::after {
+      content: ''; position: absolute; pointer-events: none; z-index: 0;
+      top: -20%; left: -10%; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,.14) 0%, transparent 70%);
+      filter: blur(70px);
+      animation: drift 16s ease-in-out infinite alternate;
+    }
+    @keyframes drift { from{transform:translate(0,0)} to{transform:translate(40px,50px)} }
+
+    /* TOP NAV */
+    #topnav {
+      position: relative; z-index: 10; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .85rem 1.75rem;
+      border-bottom: 1px solid rgba(168,85,247,.15);
+      background: rgba(3,3,10,.85);
+      backdrop-filter: blur(20px);
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.25rem; letter-spacing: .15em;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 1.75rem; }
+    .nav-links a {
+      font-family: 'Rajdhani', sans-serif; font-size: .82rem; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase; color: #64748b; text-decoration: none; transition: color .3s;
+    }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-badge {
+      display: flex; align-items: center; gap: .5rem;
+      font-family: 'JetBrains Mono', monospace; font-size: .65rem;
+      color: #22c55e; letter-spacing: .08em;
+    }
+    .nav-badge::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 8px #22c55e;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+    /* MESSAGES AREA — scrollable, fills remaining space */
+    #messages {
+      position: relative; z-index: 5;
+      flex: 1; overflow-y: auto;
+      padding: 2rem 0 1rem;
+      display: flex; flex-direction: column; gap: 0;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-thumb { background: rgba(168,85,247,.25); border-radius: 4px; }
+
+    /* Inner width constraint for readability */
+    .msg-inner {
+      width: 100%; max-width: 820px;
+      margin: 0 auto; padding: 0 1.5rem;
+    }
+
+    .msg-row {
+      display: flex; gap: 1rem; align-items: flex-start;
+      padding: .6rem 0;
+      animation: fadeUp .35s ease;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .av {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace; font-size: .68rem; font-weight: 700;
+    }
+    .av-ai { background: linear-gradient(135deg,rgba(0,212,255,.18),rgba(168,85,247,.22)); border: 1px solid rgba(168,85,247,.4); color: var(--purple); }
+    .av-user { background: linear-gradient(135deg,rgba(168,85,247,.28),rgba(124,58,237,.28)); border: 1px solid rgba(168,85,247,.3); color: #c4b5fd; }
+
+    .bbl {
+      max-width: 72%; padding: 1rem 1.3rem;
+      border-radius: 16px; font-size: 1rem; line-height: 1.7; font-weight: 400;
+    }
+    .bbl-ai { background: rgba(0,212,255,.05); border: 1px solid rgba(0,212,255,.13); border-top-left-radius: 3px; color: #cbd5e1; }
+    .bbl-ai strong { color: var(--blue); }
+    .bbl-user { background: rgba(168,85,247,.13); border: 1px solid rgba(168,85,247,.24); border-top-right-radius: 3px; color: #ddd6fe; }
+
+    .typing-wrap { display: flex; gap: 5px; align-items: center; padding: .25rem 0; }
+    .td { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); opacity: .5; animation: tb 1.4s infinite ease-in-out; }
+    .td:nth-child(2){animation-delay:.2s} .td:nth-child(3){animation-delay:.4s}
+    @keyframes tb { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-7px);opacity:1} }
+
+    /* Welcome center state (before first message) */
+    #welcome-center {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2rem 1.5rem 4rem; text-align: center; gap: 1rem;
+      position: relative; z-index: 5;
+    }
+    #welcome-center h2 {
+      font-family: 'Orbitron', monospace; font-weight: 900;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      background: linear-gradient(135deg, #fff 0%, var(--blue) 45%, var(--purple) 90%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.2; margin-bottom: .5rem;
+    }
+    #welcome-center p { font-size: 1.05rem; color: #64748b; max-width: 480px; line-height: 1.7; }
+    .chips-row {
+      display: flex; flex-wrap: wrap; gap: .65rem; justify-content: center; margin-top: .75rem;
+    }
+    .chip {
+      font-family: 'Rajdhani', sans-serif; font-size: .88rem; font-weight: 500; letter-spacing: .03em;
+      padding: .55rem 1.1rem; border-radius: 24px;
+      border: 1px solid rgba(168,85,247,.22); background: rgba(168,85,247,.06);
+      color: #94a3b8; cursor: pointer; transition: all .25s; white-space: nowrap;
+    }
+    .chip:hover { border-color: var(--purple); color: #ddd6fe; background: rgba(168,85,247,.14); box-shadow: 0 0 14px rgba(168,85,247,.22); }
+
+    /* BOTTOM INPUT AREA — fixed to bottom */
+    #input-zone {
+      position: relative; z-index: 10; flex-shrink: 0;
+      background: rgba(3,3,10,.9);
+      border-top: 1px solid rgba(168,85,247,.14);
+      backdrop-filter: blur(24px);
+      padding: 1.1rem 1.5rem 1rem;
+    }
+
+    #input-inner {
+      max-width: 820px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: .65rem;
+    }
+
+    #input-row {
+      display: flex; align-items: flex-end; gap: .85rem;
+    }
+
+    #input-box {
+      flex: 1; position: relative;
+    }
+
+    #chatInput {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(168,85,247,.28);
+      border-radius: 16px;
+      color: #e2e8f0;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem; font-weight: 400;
+      padding: 1rem 1.4rem;
+      resize: none; outline: none;
+      min-height: 58px; max-height: 220px;
+      line-height: 1.6;
+      transition: border-color .3s, box-shadow .3s;
+      display: block;
+    }
+    #chatInput::placeholder { color: #2d3748; font-size: 1rem; }
+    #chatInput:focus {
+      border-color: rgba(168,85,247,.6);
+      box-shadow: 0 0 0 4px rgba(168,85,247,.1), 0 0 30px rgba(168,85,247,.18);
+    }
+
+    .tool-btn {
+      width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+      border: 1px solid rgba(168,85,247,.22); background: rgba(168,85,247,.06);
+      color: #6b7280; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; transition: all .25s;
+    }
+    .tool-btn:hover { border-color: var(--purple); color: var(--purple); background: rgba(168,85,247,.14); box-shadow: 0 0 12px rgba(168,85,247,.2); }
+
+    #send-btn {
+      width: 58px; height: 58px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--violet), rgba(0,180,220,.85));
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .3s;
+      box-shadow: 0 0 24px rgba(124,58,237,.5);
+      overflow: hidden; position: relative;
+    }
+    #send-btn:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(124,58,237,.8), 0 0 70px rgba(0,212,255,.25); }
+    #send-btn:active { transform: translateY(0); }
+    #send-btn svg { width: 22px; height: 22px; fill: white; position: relative; z-index: 1; }
+    #send-btn::after { content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 30%,rgba(255,255,255,.15)); }
+
+    #input-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'JetBrains Mono', monospace; font-size: .63rem; color: #1e293b;
+    }
+    .kbd-hint span { border: 1px solid #1e293b; border-radius: 3px; padding: .1rem .38rem; color: #374151; }
+
+    /* Aurora bottom right */
+    .aurora-br {
+      position: fixed; bottom: 5%; right: -10%; width: 450px; height: 450px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,.1) 0%, transparent 70%);
+      filter: blur(70px); pointer-events: none; z-index: 0;
+      animation: drift 20s ease-in-out infinite alternate-reverse;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ SPLASH ══════════ -->
+<div id="splash">
+  <div id="s-scan"></div>
+  <div id="s-grid"></div>
+  <div id="s-orb"></div>
+  <div id="s-ring"></div>
+  <div id="s-ring2"></div>
+  <div id="s-box">
+    <div id="s-welcome">— &nbsp; W E L C O M E &nbsp; T O &nbsp; —</div>
+    <div id="s-brand-row"></div>
+    <div id="s-tagline">Next-Gen <span>Artificial Intelligence</span></div>
+    <div id="s-loader">
+      <div id="s-track"><div id="s-fill"></div></div>
+      <div id="s-meta">
+        <span id="s-status">Booting system...</span>
+        <span id="s-pct">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FULLSCREEN APP ══════════ -->
+<div id="app">
+  <div class="aurora-br"></div>
+
+  <!-- Nav -->
+  <nav id="topnav">
+    <div class="nav-logo">ARXXZZ AI</div>
+    <div class="nav-links">
+      <a href="#">Docs</a>
+      <a href="#">Models</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="nav-badge">ONLINE · v4.1</div>
+  </nav>
+
+  <!-- Messages scroll area -->
+  <div id="messages">
+
+    <!-- Initial welcome center (hidden once chat starts) -->
+    <div id="welcome-center">
+      <h2>Halo, ada yang bisa<br>saya bantu?</h2>
+      <p>ARXXZZ AI siap membantu Anda berpikir lebih cepat, menulis kode, dan menjelajahi ide-ide besar.</p>
+      <div class="chips-row">
+        <button class="chip" onclick="fillInput('Jelaskan quantum computing secara sederhana')">⚛️ Quantum Computing</button>
+        <button class="chip" onclick="fillInput('Tulis kode Python scraper web sederhana')">🐍 Python Code</button>
+        <button class="chip" onclick="fillInput('Buat rencana bisnis startup AI')">🚀 Business Plan</button>
+        <button class="chip" onclick="fillInput('Apa perbedaan GPT-4 dan Claude?')">🤖 Bandingkan AI</button>
+        <button class="chip" onclick="fillInput('Jelaskan cara kerja neural network')">🧠 Neural Network</button>
+        <button class="chip" onclick="fillInput('Buat email profesional untuk klien')">📧 Email Profesional</button>
+      </div>
+    </div>
+
+  </div><!-- end #messages -->
+
+  <!-- Fixed bottom input -->
+  <div id="input-zone">
+    <div id="input-inner">
+      <div id="input-row">
+        <button class="tool-btn" title="Upload file">📎</button>
+        <button class="tool-btn" title="Voice input">🎤</button>
+        <div id="input-box">
+          <textarea id="chatInput" rows="1"
+            placeholder="Kirim pesan ke ARXXZZ AI..."
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"></textarea>
+        </div>
+        <button id="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+      <div id="input-footer">
+        <span>ARXXZZ AI · Multimodal v4.1</span>
+        <span class="kbd-hint"><span>⌘</span><span>Enter</span> kirim &nbsp;·&nbsp; <span>Shift</span><span>Enter</span> baris baru</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #app -->
+
+<script>
+/* ══════════ SPLASH ══════════ */
+(function(){
+  const BRAND = 'ARXXZZ AI';
+  const row   = document.getElementById('s-brand-row');
+  const MSGS  = ['Booting system...','Loading AI core...','Connecting models...','Almost ready...','System ready ✓'];
+
+  [...BRAND].forEach(ch => {
+    if(ch === ' '){
+      row.appendChild(Object.assign(document.createElement('span'),{className:'sl-sp'}));
+    } else {
+      const el = document.createElement('span');
+      el.className = 'sl'; el.textContent = ch;
+      row.appendChild(el);
+    }
+  });
+  const letters = [...row.querySelectorAll('.sl')];
+
+  setTimeout(()=>{ document.getElementById('s-ring').classList.add('on'); document.getElementById('s-ring2').classList.add('on'); }, 100);
+  setTimeout(()=> document.getElementById('s-welcome').classList.add('on'), 500);
+  setTimeout(()=>{
+    letters.forEach((l,i)=> setTimeout(()=>{ l.classList.add('on'); setTimeout(()=>l.classList.add('glow'),500); }, i*120));
+  }, 1100);
+
+  const afterLetters = 1100 + letters.length * 120 + 500;
+  setTimeout(()=> document.getElementById('s-tagline').classList.add('on'), afterLetters);
+  setTimeout(()=>{
+    const loader = document.getElementById('s-loader');
+    loader.classList.add('on');
+    const fill   = document.getElementById('s-fill');
+    const pctEl  = document.getElementById('s-pct');
+    const stEl   = document.getElementById('s-status');
+    let pct = 0, sIdx = 0;
+    const iv = setInterval(()=>{
+      pct = Math.min(100, pct + (pct<60?2:pct<85?1.2:.5));
+      fill.style.width = pct+'%';
+      pctEl.textContent = Math.round(pct)+'%';
+      const t = Math.floor((pct/100)*(MSGS.length-1));
+      if(t!==sIdx){ sIdx=t; stEl.style.opacity='0'; setTimeout(()=>{ stEl.textContent=MSGS[sIdx]; stEl.style.cssText+='transition:opacity .4s;opacity:1'; },160); }
+      if(pct>=100){ clearInterval(iv); setTimeout(()=> document.getElementById('splash').classList.add('done'), 800); }
+    }, 38);
+  }, afterLetters + 400);
+})();
+
+/* ══════════ CHAT ══════════ */
+let chatStarted = false;
+
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 220)+'px';
+}
+function handleKey(e){
+  if((e.metaKey||e.ctrlKey) && e.key==='Enter'){ e.preventDefault(); sendMessage(); }
+}
+function fillInput(t){
+  const el = document.getElementById('chatInput');
+  el.value = t; el.focus(); autoResize(el);
+}
+
+const REPLIES = [
+  "Pertanyaan bagus! Konsep ini melibatkan beberapa lapisan abstraksi yang menarik untuk dieksplorasi. Mari kita bahas secara bertahap agar lebih mudah dipahami.",
+  "Tentu! Ada beberapa pendekatan yang bisa kita ambil. Pilihan terbaik bergantung pada konteks dan tujuan spesifik Anda — bisa Anda ceritakan lebih lanjut?",
+  "Ini adalah area yang sangat aktif dalam penelitian AI saat ini. Berikut ringkasan temuan kunci yang paling relevan untuk kebutuhan Anda.",
+  "Saya telah menganalisis pertanyaan Anda. Solusi optimal mempertimbangkan trade-off antara performa, skalabilitas, dan kemudahan implementasi.",
+  "Pola yang menarik terdeteksi dalam pertanyaan ini. Izinkan saya menjelaskan dengan analogi yang mudah dipahami terlebih dahulu. ✨"
+];
+
+function addMsg(html, isUser){
+  // Remove welcome center on first message
+  if(!chatStarted){
+    chatStarted = true;
+    const wc = document.getElementById('welcome-center');
+    if(wc) wc.remove();
+  }
+
+  const area = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-inner';
+
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (isUser ? ' user' : '');
+
+  const av = document.createElement('div');
+  av.className = 'av ' + (isUser ? 'av-user' : 'av-ai');
+  av.textContent = isUser ? 'YU' : 'AX';
+
+  const bbl = document.createElement('div');
+  bbl.className = 'bbl ' + (isUser ? 'bbl-user' : 'bbl-ai');
+  bbl.innerHTML = html;
+
+  row.appendChild(av); row.appendChild(bbl);
+  wrap.appendChild(row);
+  area.appendChild(wrap);
+  area.scrollTop = area.scrollHeight;
+  return bbl;
+}
+
+function sendMessage(){
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if(!text) return;
+
+  addMsg(esc(text), true);
+  input.value = ''; input.style.height = 'auto';
+
+  // Typing indicator
+  const area = document.getElementById('messages');
+  const twrap = document.createElement('div'); twrap.className = 'msg-inner';
+  const trow  = document.createElement('div'); trow.className = 'msg-row';
+  const tav   = document.createElement('div'); tav.className = 'av av-ai'; tav.textContent = 'AX';
+  const tbbl  = document.createElement('div'); tbbl.className = 'bbl bbl-ai';
+  tbbl.innerHTML = '<div class="typing-wrap"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  trow.appendChild(tav); trow.appendChild(tbbl); twrap.appendChild(trow); area.appendChild(twrap);
+  area.scrollTop = area.scrollHeight;
+
+  setTimeout(()=>{
+    area.removeChild(twrap);
+    addMsg(REPLIES[Math.floor(Math.random()*REPLIES.length)], false);
+  }, 1300 + Math.random()*700);
+}
+
+function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
