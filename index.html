@@ -444,50 +444,9 @@
 </div><!-- end #app -->
 
 <script>
-/* ══════════ SPLASH ══════════ */
-(function(){
-  const BRAND = 'ARXXZZ AI';
-  const row   = document.getElementById('s-brand-row');
-  const MSGS  = ['Booting system...','Loading AI core...','Connecting models...','Almost ready...','System ready ✓'];
+// ============ DEEPSEEK API ============
+const DEEPSEEK_API_KEY = "sk-542bbf0b6ccb4a5c93f108f846c4f68a"; // GANTI dengan API Key asli kamu!
 
-  [...BRAND].forEach(ch => {
-    if(ch === ' '){
-      row.appendChild(Object.assign(document.createElement('span'),{className:'sl-sp'}));
-    } else {
-      const el = document.createElement('span');
-      el.className = 'sl'; el.textContent = ch;
-      row.appendChild(el);
-    }
-  });
-  const letters = [...row.querySelectorAll('.sl')];
-
-  setTimeout(()=>{ document.getElementById('s-ring').classList.add('on'); document.getElementById('s-ring2').classList.add('on'); }, 100);
-  setTimeout(()=> document.getElementById('s-welcome').classList.add('on'), 500);
-  setTimeout(()=>{
-    letters.forEach((l,i)=> setTimeout(()=>{ l.classList.add('on'); setTimeout(()=>l.classList.add('glow'),500); }, i*120));
-  }, 1100);
-
-  const afterLetters = 1100 + letters.length * 120 + 500;
-  setTimeout(()=> document.getElementById('s-tagline').classList.add('on'), afterLetters);
-  setTimeout(()=>{
-    const loader = document.getElementById('s-loader');
-    loader.classList.add('on');
-    const fill   = document.getElementById('s-fill');
-    const pctEl  = document.getElementById('s-pct');
-    const stEl   = document.getElementById('s-status');
-    let pct = 0, sIdx = 0;
-    const iv = setInterval(()=>{
-      pct = Math.min(100, pct + (pct<60?2:pct<85?1.2:.5));
-      fill.style.width = pct+'%';
-      pctEl.textContent = Math.round(pct)+'%';
-      const t = Math.floor((pct/100)*(MSGS.length-1));
-      if(t!==sIdx){ sIdx=t; stEl.style.opacity='0'; setTimeout(()=>{ stEl.textContent=MSGS[sIdx]; stEl.style.cssText+='transition:opacity .4s;opacity:1'; },160); }
-      if(pct>=100){ clearInterval(iv); setTimeout(()=> document.getElementById('splash').classList.add('done'), 800); }
-    }, 38);
-  }, afterLetters + 400);
-})();
-
-/* ══════════ CHAT ══════════ */
 let chatStarted = false;
 
 function autoResize(el){
@@ -502,7 +461,77 @@ function fillInput(t){
   el.value = t; el.focus(); autoResize(el);
 }
 
-const REPLIES = [
+function addMsg(html, isUser){
+  if(!chatStarted){
+    chatStarted = true;
+    const wc = document.getElementById('welcome-center');
+    if(wc) wc.remove();
+  }
+  const area = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-inner';
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (isUser ? ' user' : '');
+  const av = document.createElement('div');
+  av.className = 'av ' + (isUser ? 'av-user' : 'av-ai');
+  av.textContent = isUser ? 'YU' : 'AX';
+  const bbl = document.createElement('div');
+  bbl.className = 'bbl ' + (isUser ? 'bbl-user' : 'bbl-ai');
+  bbl.innerHTML = html;
+  row.appendChild(av); row.appendChild(bbl);
+  wrap.appendChild(row);
+  area.appendChild(wrap);
+  area.scrollTop = area.scrollHeight;
+  return bbl;
+}
+
+function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function sendMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+
+  addMsg(esc(text), true);
+  input.value = ''; input.style.height = 'auto';
+
+  // typing indicator
+  const area = document.getElementById('messages');
+  const twrap = document.createElement('div'); twrap.className = 'msg-inner';
+  const trow = document.createElement('div'); trow.className = 'msg-row';
+  const tav = document.createElement('div'); tav.className = 'av av-ai'; tav.textContent = 'AX';
+  const tbbl = document.createElement('div'); tbbl.className = 'bbl bbl-ai';
+  tbbl.innerHTML = '<div class="typing-wrap"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  trow.appendChild(tav); trow.appendChild(tbbl); twrap.appendChild(trow); area.appendChild(twrap);
+  area.scrollTop = area.scrollHeight;
+
+  try {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: text }],
+        temperature: 0.5
+      })
+    });
+    const data = await response.json();
+    // hapus typing
+    if(twrap.parentNode) area.removeChild(twrap);
+    if(data.error){
+      addMsg(`⚠️ Error: ${data.error.message}`, false);
+    } else {
+      const balasan = data.choices[0].message.content;
+      addMsg(esc(balasan).replace(/\n/g,'<br>'), false);
+    }
+  } catch(err) {
+    if(twrap.parentNode) area.removeChild(twrap);
+    addMsg(`⚠️ Gagal: ${err.message}`, false);
+  }
+  }
   "Pertanyaan bagus! Konsep ini melibatkan beberapa lapisan abstraksi yang menarik untuk dieksplorasi. Mari kita bahas secara bertahap agar lebih mudah dipahami.",
   "Tentu! Ada beberapa pendekatan yang bisa kita ambil. Pilihan terbaik bergantung pada konteks dan tujuan spesifik Anda — bisa Anda ceritakan lebih lanjut?",
   "Ini adalah area yang sangat aktif dalam penelitian AI saat ini. Berikut ringkasan temuan kunci yang paling relevan untuk kebutuhan Anda.",
